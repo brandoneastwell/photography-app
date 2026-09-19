@@ -1,92 +1,150 @@
-# Photography Sharing & Portfolio App
+# Geospatial Photography Discovery & Portfolio Platform
 
-This photography app is a photo local searching and portfolio web app built on the Expo framework that is cross compatible on web and mobile using React Native, aiming to provide a way to showcase professional photography and get local inspiration.
+> A web and mobile photography app for sharing work, building a portfolio, and finding inspiration through location and camera details.
 
-<p style="align-self: center">
-  <img src="./img/photoapp-cover.gif" alt="Photoapp Landing Demo" style="width:100%; max-width:600px;" />
-</p>
+The app combines a React Native and Expo frontend with a GeoDjango backend. Photographers can upload images, review the camera information saved in them, publish them to a personal portfolio, and search for other photos by location, date, equipment, and camera settings.
 
-# Contents
+This repository contains the current working prototype. Account management, uploads, portfolios, and camera-based search work across the shared codebase. Location ranking and wider support for native devices are still being developed.
 
-- [Why?](#why)
-- [Features](#features)
-- [Demonstration](#demonstration)
-- [Technical Stack](#technical-stack)
-- [Known Issues](#known-issues)
-- [License](#license)
+![Photography discovery and portfolio app](img/photoapp-cover.gif)
 
-## Why?
+## Technical highlights
 
-As a photography enthusiast and developer, I wanted a platform that not only lets me showcase my own work but also helps me discover photography around me for inspiration. Existing apps felt either too generic or too locked into social media ecosystems, so I set out to build a tool tailored for photographers. This project gave me the chance to explore geolocation-based search, metadata extraction & filtering, and image uploads while diving deeper into Django, REST APIs, React Native and cross-platform mobile & web development with Expo.
+### Frontend engineering
 
-## Features
+- **One app for web and mobile** — React Native, Expo, Expo Router, and TypeScript provide a shared codebase for browsers and native devices.
+- **Uploads with camera details** — Expo Image Picker reads available EXIF data, rejects files larger than 50 MB, and lets users add or correct details before previewing a photo.
+- **Detailed photo filtering** — the search interface supports location, time period, camera, lens, ISO, aperture, shutter speed, focal length, and flash filters.
+- **Secure login on each platform** — native clients keep credentials in Expo SecureStore, while the web client uses secure cookies and stores only token-expiry information locally.
+- **Shared app state** — React contexts manage authentication, loading feedback, user messages, uploads, and immediate portfolio updates after a successful request.
+- **Responsive portfolio interface** — reusable photo cards, modal previews, navigation, and profile grids present the same content across different screen sizes.
 
-- **Local Photo Search Filtering:** Instantly find photos taken around you to inspire your own creativity.
-- **Advanced Search Filters:** Search for photos by camera, lens and camera settings such as ISO, shutter speed, aperture and more.
-- **Personal Portfolio:** Upload the photos you take to your own personal portfolio and show it off.
+### Backend engineering
 
-## Demonstration
+- **Location-based photo data** — GeoDjango and PostGIS store photo locations and calculate how far each photo was taken from the user's search position.
+- **Useful results when exact matches are limited** — the API applies exact EXIF filters first, then ranks related photos by camera, lens, ISO, focal length, shutter speed, other details, and distance.
+- **Photo upload processing** — multipart uploads include the image and its EXIF fields. The backend reuses camera and lens records, prepares GPS data, gives each file a unique UUID name, and saves the result.
+- **JWT login with refresh sessions** — short-lived access tokens are backed by server-side sessions, allowing the app to refresh a login without asking the user to sign in again.
+- **Login support for web and mobile** — browsers receive secure `HttpOnly` cookies, while native clients receive tokens and session IDs for secure storage on the device.
+- **Protected media ownership** — authenticated upload and deletion routes identify the current user and prevent one account from deleting another account's photos.
+- **Cloud storage and deployment** — Django uses AWS S3 for uploaded media and static files, while Docker packages Gunicorn and the mapping libraries required by GeoDjango.
 
->The following demonstrations show key interactions and features in action.
+## What the current version can do
 
-### Account Creation
+- Register an account and sign in or out.
+- Restore an existing authenticated session when the app starts.
+- Select a photo from the device and read its available EXIF metadata.
+- Add or correct camera, lens, location, and exposure details before upload.
+- Preview a photo and its metadata before publishing it.
+- Upload photos to an account-owned portfolio backed by AWS S3.
+- Browse recent photos in a three-column discovery feed.
+- Filter photos by date, location, equipment, and camera settings.
+- Open a photo to view its photographer and available shooting details.
+- View a photographer's profile and portfolio.
+- Delete photos from their own portfolio.
 
-<p style="align-self: center">
-  <img src="./img/photoapp-login-signup.gif" alt="Photoapp Demo" style="width:100%; max-width:600px;" />
-</p>
+## How the pieces fit together
 
----
+```mermaid
+flowchart LR
+    Client[Expo client] -->|register, login, search| API[Django API]
+    Picker[Image picker + EXIF] -->|preview and edit| Client
+    Client -->|multipart photo upload| API
+    API -->|users, metadata, GPS points| PG[(PostgreSQL + PostGIS)]
+    API -->|media files| S3[(AWS S3)]
+    PG -->|filtered and ranked photos| API
+    S3 -->|image URLs| API
+    API -->|portfolio and search results| Client
+```
 
-### Upload Your Photo
+When a user selects a photo, the app reads any camera details supplied by the device and shows them in an editable form. The image and confirmed details are then sent to Django together. Django links the upload to the signed-in user, stores its searchable information in PostgreSQL/PostGIS, and saves the image in AWS S3.
 
-<p style="align-self: center">
-  <img src="./img/photoapp-upload.gif" alt="Photoapp Demo" style="width:100%; max-width:600px;" />
-</p>
+Search requests can include a time range, location, and camera settings. The API returns exact matches first. If there are not enough, it adds related results and gives more weight to similar equipment, camera settings, and nearby photos.
 
----
+## Key engineering decisions
 
-### Proximity Based Search
+### One client across platforms
 
-<p style="align-self: center">
-  Not working as intended at the moment
-</p>
+Expo and React Native allow the main screens, components, and app state to be shared between web and mobile. Separate platform logic is only used where behavior differs, such as file uploads, cookies, and secure credential storage.
 
----
+### Camera details stay editable
 
-### Advanced Camera Based Filtering
+EXIF data can be missing, incorrect, or removed by editing software. The upload flow uses the extracted details as a starting point and lets the photographer review or correct them before publishing.
 
-<p style="align-self: center">
-  <img src="./img/photoapp-search.gif" alt="Photoapp Demo" style="width:100%; max-width:600px;" />
-</p>
+### Exact matches with a useful fallback
 
----
+Combining several camera and exposure filters can return very few photos. The backend keeps exact results first, removes duplicates, and adds the closest related matches so the user can still discover relevant work.
 
-### Portfolio Profile Page
+### Sessions support short-lived access tokens
 
-<p style="align-self: center">
-  <img src="./img/photoapp-portfolio.gif" alt="Photoapp Demo" style="width:100%; max-width:600px;" />
-</p>
+JWTs protect signed-in API requests, while longer-lived server sessions keep users logged in. If an access token expires, the app can replace it without storing a long-lived JWT.
 
-## Technical Stack
-- **Frameworks**: Expo
-- **Frontend**: React Native, TypeScript
-- **Backend**: REST API, Python, Django, PostgreSQL
-- **Libraries**: JWT
-- **Deployment**: AWS S3
-- **Tools**: Figma
+### Location is stored as geographic data
 
-## Known Issues
-- Some page load animation issues
-- IOS is untested
-- Android photo upload is broken
-- Proximity photo filtering does not apply distance rankings (no change)
- 
-## Todo
-> Feature list planned to be worked on in the future
-- **Liking Photos**: Upvote photos you like the vibe of to save them to a list
-- **Save Portfolios**: Add portfolios you like to a list you can access
-- **Portfolio Customisation**: Profile icons, themes, drag reorder photos, create photo albums
-- **Account Management**: Forgotten password, change password, username
+Photo coordinates use a PostGIS geography field instead of plain text values. This lets the backend calculate real distances and supports location-based discovery as the ranking is improved.
 
-## License
-This project is licensed under the MIT License.
+## Stack
+
+| Layer | Technology |
+| --- | --- |
+| Cross-platform application | Expo 53, React Native 0.79, React 19, TypeScript |
+| Navigation and UI | Expo Router, Expo Image, React Native Reanimated, Expo Vector Icons |
+| Device features | Expo Image Picker, Expo Location, Expo SecureStore, Expo File System |
+| Forms and validation | Formik, Yup |
+| API | Python 3.13, Django 5.2, Gunicorn |
+| Data and geospatial search | PostgreSQL, PostGIS, GeoDjango, GDAL, GEOS, PROJ |
+| Authentication | PyJWT, server-side sessions, secure `HttpOnly` cookies |
+| Media storage | AWS S3, `django-storages`, Boto3 |
+| Delivery | Docker, GitHub Actions, Expo Application Services |
+
+## Repository map
+
+```text
+photography-app/
+├── frontend/                       Expo and React Native application
+│   ├── app/
+│   │   ├── (tabs)/                 Discovery, portfolio and authentication routes
+│   │   ├── components/             Upload, search, photo and form UI
+│   │   └── lib/                    Auth, shared state, types and client helpers
+│   ├── components/                 Platform-specific location picker implementations
+│   └── assets/                     Fonts and interface artwork
+├── backend/                        Django and GeoDjango API
+│   ├── accounts/                   Users, profiles, sessions and account routes
+│   ├── media/                      Photos, equipment, search and upload routes
+│   ├── photoapp/                   Settings, root routes and JWT middleware
+│   ├── lib/                        Authentication helpers
+│   └── Dockerfile                  GeoDjango production image
+├── .github/workflows/              Automated build workflow
+└── img/                            README demonstrations
+```
+
+Good starting points for exploring the implementation:
+
+- [`PhotoUpload.tsx`](frontend/app/components/PhotoUpload.tsx) — image selection, size validation, metadata collection, preview, upload, and token refresh.
+- [`ExifForm.tsx`](frontend/app/components/ExifForm.tsx) — reusable metadata editing and search-filter form.
+- [`SearchBar.tsx`](frontend/app/components/SearchBar.tsx) — location, time-period, and detailed filter controls.
+- [`AuthService.ts`](frontend/app/lib/AuthService.ts) — platform-specific sessions, token storage, and refresh behavior.
+- [`photo_view.py`](backend/media/views/photo_view.py) — photo search serialization and authenticated upload handling.
+- [`PhotoManager.py`](backend/media/lib/PhotoManager.py) — time filters, exact EXIF matching, and weighted fallback ranking.
+- [`auth_middleware.py`](backend/photoapp/middleware/auth_middleware.py) — JWT extraction and validation across browser and native requests.
+- [`account_views.py`](backend/accounts/views/account_views.py) — registration, login controls, session creation, and logout.
+
+## Current status
+
+The current prototype covers the main full-stack journey: a photographer can create an account, choose and describe a photo, upload it to cloud storage, show it in a portfolio, and search other work using camera details. The shared Expo frontend and GeoDjango backend provide a base for the web and mobile app, while the limitations below show what still needs work.
+
+## Future improvements
+
+- Add likes so users can save and return to photos that inspire them.
+- Let users save and follow other photographers' portfolios.
+- Add portfolio themes, profile images, albums, and drag-to-reorder controls.
+- Add password recovery and account settings for changing passwords and usernames.
+- Refine proximity ranking and expand automated test coverage around geospatial search.
+- Complete and verify the native photo-upload experience on Android and iOS.
+
+## Known issues
+
+- Some page-load animations do not run consistently.
+- The iOS application has not yet been tested.
+- Photo uploads are currently broken on Android.
+- Proximity search calculates distance, but distance ranking does not yet behave as intended.
