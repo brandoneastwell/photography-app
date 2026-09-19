@@ -45,29 +45,37 @@ This repository contains the current working prototype. Account management, uplo
 
 ## Product walkthrough
 
-### Create an account
+<details>
+<summary><strong>Create an account</strong></summary>
 
 <p align="center">
-  <img src="img/photoapp-login-signup.gif" alt="Creating an account and signing in" width="100%" />
+  <img src="img/photoapp-login-signup.gif" alt="Creating an account and signing in" width="600" />
 </p>
+</details>
 
-### Upload a photo
+<details>
+<summary><strong>Upload a photo</strong></summary>
 
 <p align="center">
-  <img src="img/photoapp-upload.gif" alt="Selecting, reviewing, and uploading a photo" width="100%" />
+  <img src="img/photoapp-upload.gif" alt="Selecting, reviewing, and uploading a photo" width="600" />
 </p>
+</details>
 
-### Search by camera details
+<details>
+<summary><strong>Search by camera details</strong></summary>
 
 <p align="center">
-  <img src="img/photoapp-search.gif" alt="Filtering photos by camera and shooting details" width="100%" />
+  <img src="img/photoapp-search.gif" alt="Filtering photos by camera and shooting details" width="600" />
 </p>
+</details>
 
-### View a portfolio
+<details>
+<summary><strong>View a portfolio</strong></summary>
 
 <p align="center">
-  <img src="img/photoapp-portfolio.gif" alt="Viewing a photographer's portfolio" width="100%" />
+  <img src="img/photoapp-portfolio.gif" alt="Viewing a photographer's portfolio" width="600" />
 </p>
+</details>
 
 ## How the pieces fit together
 
