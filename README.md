@@ -43,6 +43,32 @@ This repository contains the current working prototype. Account management, uplo
 - View a photographer's profile and portfolio.
 - Delete photos from their own portfolio.
 
+## Product walkthrough
+
+### Create an account
+
+<p align="center">
+  <img src="img/photoapp-login-signup.gif" alt="Creating an account and signing in" width="100%" />
+</p>
+
+### Upload a photo
+
+<p align="center">
+  <img src="img/photoapp-upload.gif" alt="Selecting, reviewing, and uploading a photo" width="100%" />
+</p>
+
+### Search by camera details
+
+<p align="center">
+  <img src="img/photoapp-search.gif" alt="Filtering photos by camera and shooting details" width="100%" />
+</p>
+
+### View a portfolio
+
+<p align="center">
+  <img src="img/photoapp-portfolio.gif" alt="Viewing a photographer's portfolio" width="100%" />
+</p>
+
 ## How the pieces fit together
 
 ```mermaid
