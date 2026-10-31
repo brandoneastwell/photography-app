@@ -13,25 +13,36 @@ from pathlib import Path
 
 import dj_database_url
 import environ
+import os
 from corsheaders.defaults import default_headers
 
 # from django.conf.global_settings import AUTH_USER_MODEL
 
 # Initialise environment variables
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = environ.Env()
-environ.Env.read_env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 import platform
 
-if platform.system() == "Windows":
-    # Windows local dev machine paths
+import platform
+
+system = platform.system()
+
+if system == "Windows":
     GDAL_LIBRARY_PATH = r"C:\OSGeo4W\bin\gdal310.dll"
     GEOS_LIBRARY_PATH = r"C:\OSGeo4W\bin\geos_c.dll"
+
+elif system == "Darwin":
+    # macOS / Homebrew
+    GDAL_LIBRARY_PATH = "/opt/homebrew/opt/gdal/lib/libgdal.dylib"
+    GEOS_LIBRARY_PATH = "/opt/homebrew/opt/geos/lib/libgeos_c.dylib"
+
 else:
-    # Linux container paths
+    # Linux / production container
     GDAL_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu/libgdal.so"
     GEOS_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu/libgeos_c.so.1"
 
@@ -39,7 +50,7 @@ else:
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o5)9cyx=@62omlu&bp3=w8xo*jfy2m-a^og+8n&936-&$+^(*8'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", default=True)
