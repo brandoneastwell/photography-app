@@ -128,9 +128,6 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        }
     } if PRODUCTION is True else {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'photoapp',
