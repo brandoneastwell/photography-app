@@ -15,3 +15,5 @@ jobs:
 
       - name: Docker Build
         run: docker compose build
+    runs-on:
+      - ubuntu-latest
