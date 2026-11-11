@@ -1,9 +1,6 @@
 import logging
 from datetime import timedelta
 
-import logging
-from datetime import timedelta
-
 import environ
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
@@ -92,6 +89,8 @@ def login_user(req):
         # Create new session / add to response body
         session = create_session(session.id, user)
         token, expiry = create_jwt(user.id)
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
 
         platform = req.META.get('HTTP_PLATFORM')
         if platform == "web":
@@ -115,8 +114,6 @@ def login_user(req):
             "message": "You have successfully logged in."
         })
 
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
         return response
 
     except Exception as error:

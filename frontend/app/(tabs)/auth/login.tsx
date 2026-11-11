@@ -12,7 +12,7 @@ import {useMessage} from "@/app/lib/MessagingContext";
 const apiUrl = Constants.expoConfig?.extra?.API_URL;
 
 export default function Login() {
-    const {setMessage } = useMessage()
+    const { setMessage } = useMessage()
     const { login } = useAuth()
     const router = useRouter()
 
@@ -48,7 +48,6 @@ export default function Login() {
             }
 
             setMessage({ message: data.message, error: false })
-            console.log(data.auth_token_exp)
             await AuthService.saveAuthToken(data.auth_token, data.auth_token_exp)
             login({ username: data.username, userId: data.user_id })
 
@@ -108,7 +107,7 @@ export default function Login() {
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => router.push('/auth/register')}>
                                 <Text style={styles.signUp}>
-                                    Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text>
+                                    Don&#39;t have an account? <Text style={styles.signUpLink}>Sign Up</Text>
                                 </Text>
                             </TouchableOpacity>
                         </>
